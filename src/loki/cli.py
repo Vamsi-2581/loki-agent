@@ -30,6 +30,7 @@ from loki.engine.recorder import JourneyRecorder
 from loki.engine.replayer import IncidentReplayer
 from loki.engine.ci import CIGate
 from loki.engine import infra_chaos
+from loki.engine.devices import suggest_device_names
 from loki.models import IncidentReport
 from loki.services.heal import HealError, HealingService
 from loki.services.run import (
@@ -585,10 +586,13 @@ def _print_capped(items: list[str], label: str, noun: str, limit: int = 10) -> N
 def _print_attack_summary(report: IncidentReport, requested_device: str | None) -> None:
     console.print(f"\n[bold green]✔ Attack session finished in {report.duration_seconds}s[/bold green]")
     if requested_device and not report.device_name:
+        suggestions = suggest_device_names(requested_device)
+        suggestion_text = f" Did you mean: {', '.join(suggestions)}?" if suggestions else ""
         console.print(
             f"[bold yellow]⚠ Device alias '{requested_device}' was not recognized — the session ran in the default "
             f"desktop viewport instead of emulating a mobile device. Check the exact Playwright device name "
-            f"(e.g. 'iPhone 15', 'Pixel 7') or an alias documented in .agents/skills/loki-chaos/references/devices.md.[/bold yellow]"
+            f"(e.g. 'iPhone 15', 'Pixel 7') or an alias documented in .agents/skills/loki-chaos/references/devices.md."
+            f"{suggestion_text}[/bold yellow]"
         )
     if report.actions_taken:
         console.print(f"\n[bold blue]📋 Actions executed ({len(report.actions_taken)}):[/bold blue]")

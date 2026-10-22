@@ -1,5 +1,8 @@
 """Mobile device emulation: friendly aliases resolved against Playwright's device catalog."""
 
+from difflib import get_close_matches
+import re
+
 DEVICE_ALIASES = {
     "iphone": "iPhone 17",
     "iphone-15": "iPhone 15",
@@ -74,3 +77,45 @@ def resolve_device(
                 return key, dict(val)
 
     return None, None
+
+
+def suggest_device_names(device_name: str, devices: dict | None = None, limit: int = 3) -> list[str]:
+    """Suggest supported aliases or Playwright device names for an unknown device."""
+    if limit <= 0 or not device_name.strip():
+        return []
+
+    names_by_normalized: dict[str, str] = {}
+
+    def add_name(name: str) -> None:
+        normalized = re.sub(r"[^a-z0-9]", "", name.lower())
+        if not normalized:
+            return
+        current = names_by_normalized.get(normalized)
+        if current is None or ("-" in name and "-" not in current):
+            names_by_normalized[normalized] = name
+
+    for name in DEVICE_ALIASES:
+        add_name(name)
+    for name in DEVICE_ALIASES.values():
+        add_name(name)
+    for name in devices or {}:
+        add_name(name)
+
+    normalized_input = re.sub(r"[^a-z0-9]", "", device_name.lower())
+    if not normalized_input or normalized_input in names_by_normalized:
+        return []
+
+    closest = get_close_matches(normalized_input, list(names_by_normalized), n=limit * 3, cutoff=0.5)
+    suggestions: list[str] = []
+    seen_devices: set[str] = set()
+    for normalized_name in closest:
+        name = names_by_normalized[normalized_name]
+        resolved_name = DEVICE_ALIASES.get(name.lower(), name)
+        normalized_device = re.sub(r"[^a-z0-9]", "", resolved_name.lower())
+        if normalized_device in seen_devices:
+            continue
+        seen_devices.add(normalized_device)
+        suggestions.append(name)
+        if len(suggestions) == limit:
+            break
+    return suggestions
