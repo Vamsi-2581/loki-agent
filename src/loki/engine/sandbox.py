@@ -5,7 +5,7 @@ from typing import Any
 from playwright.sync_api import sync_playwright, Page, Response, Error
 from loki.engine.browser import launch_browser, normalize_browser_name
 from loki.engine.detectors import Detector, capture_dom_snapshot, default_detectors
-from loki.engine.devices import resolve_device
+from loki.engine.devices import resolve_device, suggest_device_names
 from loki.models import IncidentReport
 from loki.personas.base import BasePersona
 
@@ -103,6 +103,8 @@ class ChaosSandbox:
                 orientation=orientation,
                 devices=p.devices,
             )
+            if device_name and not report.device_name:
+                report.device_suggestions = suggest_device_names(device_name, p.devices)
 
             browser = launch_browser(p, self.browser_name, self.headless)
             context = browser.new_context(**self._context_options(device_config, temp_har_file))
