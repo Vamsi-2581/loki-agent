@@ -586,7 +586,7 @@ def _print_capped(items: list[str], label: str, noun: str, limit: int = 10) -> N
 def _print_attack_summary(report: IncidentReport, requested_device: str | None) -> None:
     console.print(f"\n[bold green]✔ Attack session finished in {report.duration_seconds}s[/bold green]")
     if requested_device and not report.device_name:
-        suggestions = suggest_device_names(requested_device)
+        suggestions = report.device_suggestions
         suggestion_text = f" Did you mean: {', '.join(suggestions)}?" if suggestions else ""
         console.print(
             f"[bold yellow]⚠ Device alias '{requested_device}' was not recognized — the session ran in the default "
