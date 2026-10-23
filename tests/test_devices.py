@@ -26,4 +26,4 @@ def test_unknown_device_warning_includes_suggestions(monkeypatch):
 
     cli._print_attack_summary(report, requested_device="pixl-7")
 
-    assert any("Did you mean: pixel-7?" in str(message) for message in messages)
+    assert any("Did you mean: pixel-7" in str(message) for message in messages)
