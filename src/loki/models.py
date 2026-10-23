@@ -11,6 +11,7 @@ class IncidentReport:
     seed: int | None = None
     device_name: str | None = None
     device_requested: str | None = None
+    device_suggestions: list[str] = field(default_factory=list)
     orientation: str = "portrait"
     crashes: list[str] = field(default_factory=list)
     console_errors: list[str] = field(default_factory=list)
